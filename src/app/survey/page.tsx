@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CreateSurveyForm } from "@/components/survey/create-survey-form";
 import { Header } from "@/components/layout/header";
 import { SectionCard } from "@/components/ui/section-card";
@@ -15,6 +16,11 @@ export default function SurveyPage() {
     <main className="min-h-screen">
       <Header />
       <section className="mx-auto max-w-5xl px-6 py-16">
+        <div className="mb-6 flex justify-end">
+          <Link href="/survey/list" className="text-sm text-slate-300 transition hover:text-white">
+            View all drafts →
+          </Link>
+        </div>
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <SectionCard>
             <p className="text-sm uppercase tracking-[0.2em] text-violet-200/80">
