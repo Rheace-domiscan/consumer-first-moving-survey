@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Survey {
+  id                 String       @id @default(cuid())
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  status             SurveyStatus @default(DRAFT)
+  title              String?
+  originPostcode     String?
+  destinationPostcode String?
+  propertyType       String?
+  moveWindow         String?
+  completeness       String?
+  notes              String?
+  rooms              SurveyRoom[]
+}
+
+model SurveyRoom {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  surveyId    String
+  name        String
+  status      String?
+  mediaCount  Int      @default(0)
+  notes       String?
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+}
+
+enum SurveyStatus {
+  DRAFT
+  COLLECTING_MEDIA
+  SUBMITTED
+  PROCESSING
+  READY_TO_SHARE
+  REVIEW_REQUIRED
+  ARCHIVED
+}
