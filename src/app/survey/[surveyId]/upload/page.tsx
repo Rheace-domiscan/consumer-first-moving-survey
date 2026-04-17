@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { auth } from "@clerk/nextjs/server";
+import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/layout/header";
 import { SectionCard } from "@/components/ui/section-card";
@@ -10,10 +11,19 @@ export default async function SurveyUploadPage({
 }: {
   params: Promise<{ surveyId: string }>;
 }) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
   const { surveyId } = await params;
 
-  const survey = await prisma.survey.findUnique({
-    where: { id: surveyId },
+  const survey = await prisma.survey.findFirst({
+    where: {
+      id: surveyId,
+      ownerClerkUserId: userId,
+    },
     include: {
       rooms: {
         include: {

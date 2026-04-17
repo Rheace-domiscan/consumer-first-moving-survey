@@ -1,11 +1,22 @@
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/layout/header";
 import { SectionCard } from "@/components/ui/section-card";
 import { SurveyList } from "@/components/survey/survey-list";
 
 export default async function SurveyListPage() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
   const surveys = await prisma.survey.findMany({
+    where: {
+      ownerClerkUserId: userId,
+    },
     include: {
       rooms: {
         orderBy: {

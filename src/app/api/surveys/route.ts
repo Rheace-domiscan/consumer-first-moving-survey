@@ -1,9 +1,19 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeRooms, type CreateSurveyPayload } from "@/lib/survey";
 
 export async function GET() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const surveys = await prisma.survey.findMany({
+    where: {
+      ownerClerkUserId: userId,
+    },
     include: {
       rooms: true,
     },
@@ -16,6 +26,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = (await request.json()) as CreateSurveyPayload;
   const rooms = normalizeRooms(body.rooms ?? []);
 
@@ -25,6 +41,7 @@ export async function POST(request: Request) {
 
   const survey = await prisma.survey.create({
     data: {
+      ownerClerkUserId: userId,
       title: body.title?.trim() || null,
       originPostcode: body.originPostcode?.trim() || null,
       destinationPostcode: body.destinationPostcode?.trim() || null,

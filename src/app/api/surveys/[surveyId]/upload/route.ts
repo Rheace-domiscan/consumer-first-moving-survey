@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { uploadToObjectStorage } from "@/lib/storage";
@@ -6,6 +7,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ surveyId: string }> },
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { surveyId } = await params;
   const formData = await request.formData();
 
@@ -20,6 +27,9 @@ export async function POST(
     where: {
       id: roomId,
       surveyId,
+      survey: {
+        ownerClerkUserId: userId,
+      },
     },
   });
 
@@ -56,8 +66,11 @@ export async function POST(
     },
   });
 
-  await prisma.survey.update({
-    where: { id: surveyId },
+  await prisma.survey.updateMany({
+    where: {
+      id: surveyId,
+      ownerClerkUserId: userId,
+    },
     data: {
       status: "COLLECTING_MEDIA",
     },

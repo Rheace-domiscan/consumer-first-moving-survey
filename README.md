@@ -7,6 +7,8 @@ Browser-first moving survey passport platform.
 - TypeScript
 - Tailwind CSS
 - Prisma
+- Clerk (chosen auth direction)
+- Cloudflare R2 via S3-compatible storage adapter
 
 ## Current scaffold status
 This repository currently contains:
@@ -42,6 +44,6 @@ npm run dev
 ```
 
 ## Notes
-- Auth is not wired yet.
-- Storage is not wired yet.
+- Clerk is now wired at the app level, but you still need to supply Clerk env keys.
+- Cloudflare R2 is wired behind a storage abstraction, but you still need to supply bucket credentials.
 - Initial scaffold is intentionally lean so the build can move quickly.
