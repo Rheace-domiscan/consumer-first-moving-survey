@@ -8,30 +8,47 @@ datasource db {
 }
 
 model Survey {
-  id                 String       @id @default(cuid())
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  status             SurveyStatus @default(DRAFT)
-  title              String?
-  originPostcode     String?
+  id                  String       @id @default(cuid())
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  status              SurveyStatus @default(DRAFT)
+  title               String?
+  originPostcode      String?
   destinationPostcode String?
-  propertyType       String?
-  moveWindow         String?
-  completeness       String?
-  notes              String?
-  rooms              SurveyRoom[]
+  propertyType        String?
+  moveWindow          String?
+  completeness        String?
+  notes               String?
+  rooms               SurveyRoom[]
 }
 
 model SurveyRoom {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   surveyId    String
   name        String
   status      String?
-  mediaCount  Int      @default(0)
+  mediaCount  Int           @default(0)
   notes       String?
-  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  survey      Survey        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  media       SurveyMedia[]
+}
+
+model SurveyMedia {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  surveyRoomId String
+  kind         String
+  fileName     String
+  contentType  String?
+  fileSize     Int?
+  storageKey   String
+  storageUrl   String?
+  uploadStatus String   @default("UPLOADED")
+  notes        String?
+  surveyRoom   SurveyRoom @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
 }
 
 enum SurveyStatus {

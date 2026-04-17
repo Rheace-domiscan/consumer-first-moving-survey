@@ -1,25 +1,20 @@
 # Auth Decision Placeholder
 
 ## Current state
-Auth is intentionally not wired in the first scaffold.
+We have now chosen **Clerk** as the default auth direction for the build.
 
-## Shortlist
-- Clerk
-- WorkOS
+## Working decision
+Use **Clerk first** for the early product.
 
-## Current recommendation
-Start with **Clerk** unless a strong near-term reason emerges to use WorkOS first.
+### Why
+- faster to wire for a consumer-facing Next.js app
+- clean developer experience
+- good default fit for early survey creation and account ownership
+- keeps us moving without prematurely designing enterprise identity complexity
 
-### Why Clerk is the current default lean choice
-- faster to wire for a consumer-facing app
-- good Next.js support
-- quick login/session scaffolding
-- easy to replace later if needed
-
-### Why WorkOS is still relevant
-- strong longer-term fit if organization/company identity and enterprise relationships become central early
-- may become more attractive when mover/company account structure becomes more complex
+## WorkOS status
+WorkOS remains a possible later option if mover/company-side organizational identity becomes more complex.
 
 ## Working stance
-- do not block early build on final auth decision
-- keep auth boundary clean so provider choice stays reversible
+- move forward with Clerk unless a strong blocker appears
+- keep auth boundaries clean so future evolution stays manageable
