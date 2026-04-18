@@ -58,7 +58,7 @@ export default async function SurveySummaryPage({
         </div>
         <QuoteSummary summary={summary} />
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <ShareLinkCard surveyId={survey.id} existingToken={survey.completeness} />
+          <ShareLinkCard surveyId={survey.id} existingToken={survey.shareToken} />
           <ExportCard surveyId={survey.id} />
         </div>
       </section>

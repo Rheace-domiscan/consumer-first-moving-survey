@@ -13,6 +13,8 @@ model Survey {
   updatedAt           DateTime               @updatedAt
   ownerClerkUserId    String
   status              SurveyStatus           @default(DRAFT)
+  shareToken          String?                @unique
+  readinessState      String?                @default("NOT_READY")
   title               String?
   originPostcode      String?
   destinationPostcode String?
@@ -22,6 +24,8 @@ model Survey {
   notes               String?
   rooms               SurveyRoom[]
   extractionJobs      ExtractionJob[]
+  auditEvents         AuditEvent[]
+  moverUnlocks        MoverUnlock[]
 
   @@index([ownerClerkUserId, updatedAt])
 }
@@ -58,29 +62,54 @@ model SurveyMedia {
 }
 
 model ExtractionJob {
-  id          String             @id @default(cuid())
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id          String              @id @default(cuid())
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
   surveyId    String
   mediaId     String
   status      ExtractionJobStatus @default(PENDING)
   mode        String
-  survey      Survey             @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  media       SurveyMedia        @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  survey      Survey              @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  media       SurveyMedia         @relation(fields: [mediaId], references: [id], onDelete: Cascade)
   result      ExtractionResult?
 }
 
 model ExtractionResult {
-  id            String         @id @default(cuid())
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  extractionJobId String       @unique
-  surveyRoomId  String
-  needsReview   Boolean        @default(true)
-  observedJson  String
-  declaredJson  String
-  extractionJob ExtractionJob  @relation(fields: [extractionJobId], references: [id], onDelete: Cascade)
-  surveyRoom    SurveyRoom     @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  extractionJobId String        @unique
+  surveyRoomId    String
+  needsReview     Boolean       @default(true)
+  observedJson    String
+  declaredJson    String
+  extractionJob   ExtractionJob @relation(fields: [extractionJobId], references: [id], onDelete: Cascade)
+  surveyRoom      SurveyRoom    @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  surveyId    String
+  actorType  String
+  actorId    String?
+  eventType  String
+  payloadJson String?
+  survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+}
+
+model MoverUnlock {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  surveyId    String
+  moverEmail  String
+  companyName String?
+  status      String   @default("INVITED")
+  invitedAt   DateTime @default(now())
+  viewedAt    DateTime?
+  unlockedAt  DateTime?
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
 }
 
 enum SurveyStatus {

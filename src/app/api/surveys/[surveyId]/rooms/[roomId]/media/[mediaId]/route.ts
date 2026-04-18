@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { prisma } from "@/lib/prisma";
 import { deriveSurveyStatus } from "@/lib/survey-status";
+import { deriveReadinessState } from "@/lib/readiness";
+import { recordAuditEvent } from "@/lib/audit";
 
 export async function DELETE(
   _request: Request,
@@ -89,7 +91,16 @@ export async function DELETE(
     where: { id: surveyId },
     data: {
       status: deriveSurveyStatus(rooms),
+      readinessState: deriveReadinessState(rooms),
     },
+  });
+
+  await recordAuditEvent({
+    surveyId,
+    actorType: "owner",
+    actorId: userId,
+    eventType: "media_deleted",
+    payload: { roomId, mediaId },
   });
 
   return NextResponse.json({ ok: true });

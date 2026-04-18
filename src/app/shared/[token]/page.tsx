@@ -12,7 +12,7 @@ export default async function SharedSurveyPage({
 
   const survey = await prisma.survey.findFirst({
     where: {
-      completeness: token,
+      shareToken: token,
     },
     include: {
       rooms: {

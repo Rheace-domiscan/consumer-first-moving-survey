@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createShareToken } from "@/lib/share";
+import { recordAuditEvent } from "@/lib/audit";
 
 export async function POST(
   _request: Request,
@@ -31,9 +32,17 @@ export async function POST(
   const updated = await prisma.survey.update({
     where: { id: surveyId },
     data: {
-      completeness: shareToken,
+      shareToken,
     },
   });
 
-  return NextResponse.json({ shareToken: updated.completeness });
+  await recordAuditEvent({
+    surveyId,
+    actorType: "owner",
+    actorId: userId,
+    eventType: "share_link_created",
+    payload: { shareToken },
+  });
+
+  return NextResponse.json({ shareToken: updated.shareToken });
 }

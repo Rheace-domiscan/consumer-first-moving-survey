@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { uploadToObjectStorage } from "@/lib/storage";
 import { deriveSurveyStatus } from "@/lib/survey-status";
+import { deriveReadinessState } from "@/lib/readiness";
+import { recordAuditEvent } from "@/lib/audit";
 
 export async function POST(
   request: Request,
@@ -84,7 +86,16 @@ export async function POST(
     },
     data: {
       status: deriveSurveyStatus(rooms),
+      readinessState: deriveReadinessState(rooms),
     },
+  });
+
+  await recordAuditEvent({
+    surveyId,
+    actorType: "owner",
+    actorId: userId,
+    eventType: "media_uploaded",
+    payload: { roomId: room.id, mediaId: media.id, fileName: media.fileName },
   });
 
   return NextResponse.json(media, { status: 201 });
