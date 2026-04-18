@@ -57,6 +57,12 @@ export default async function SurveyDetailPage({
             >
               Continue to uploads
             </Link>
+            <Link
+              href={`/survey/${survey.id}/ai-preview`}
+              className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+            >
+              View AI prep
+            </Link>
           </div>
         </div>
         <SurveyDetail survey={survey} />
