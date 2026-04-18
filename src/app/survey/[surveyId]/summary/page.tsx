@@ -2,10 +2,11 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { buildQuoteReadySummary } from "@/lib/survey-output";
 import { Header } from "@/components/layout/header";
-import { SurveyDetail } from "@/components/survey/survey-detail";
+import { QuoteSummary } from "@/components/survey/quote-summary";
 
-export default async function SurveyDetailPage({
+export default async function SurveySummaryPage({
   params,
 }: {
   params: Promise<{ surveyId: string }>;
@@ -36,30 +37,24 @@ export default async function SurveyDetailPage({
     notFound();
   }
 
+  const summary = buildQuoteReadySummary(survey);
+
   return (
     <main className="min-h-screen">
       <Header />
       <section className="mx-auto max-w-6xl px-6 py-16">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <Link href="/survey/list" className="text-sm text-slate-300 transition hover:text-white">
-            ← Back to drafts
+          <Link href={`/survey/${survey.id}`} className="text-sm text-slate-300 transition hover:text-white">
+            ← Back to survey draft
           </Link>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={`/survey/${survey.id}/summary`}
-              className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
-            >
-              View summary
-            </Link>
-            <Link
-              href={`/survey/${survey.id}/upload`}
-              className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
-            >
-              Continue to uploads
-            </Link>
-          </div>
+          <Link
+            href={`/mover?survey=${survey.id}`}
+            className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+          >
+            View mover preview shape
+          </Link>
         </div>
-        <SurveyDetail survey={survey} />
+        <QuoteSummary summary={summary} />
       </section>
     </main>
   );
