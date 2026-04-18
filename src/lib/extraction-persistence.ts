@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { buildExtractionQueue, buildPlaceholderExtractionResult } from "@/lib/extraction";
+import { buildExtractionQueue } from "@/lib/extraction";
 
 export async function syncExtractionArtifactsForSurvey(surveyId: string) {
   const survey = await prisma.survey.findUnique({
@@ -48,36 +48,33 @@ export async function syncExtractionArtifactsForSurvey(surveyId: string) {
     const room = survey.rooms.find((entry) => entry.id === item.roomId);
     if (!room) continue;
 
-    const placeholder = buildPlaceholderExtractionResult({
-      roomId: room.id,
-      roomName: room.name,
-      roomNotes: room.notes,
-      mediaCount: room.mediaCount,
-    });
-
     await prisma.extractionResult.upsert({
       where: {
         extractionJobId: job.id,
       },
       update: {
         surveyRoomId: room.id,
-        needsReview: placeholder.needsReview,
-        observedJson: JSON.stringify(placeholder.observedItems),
-        declaredJson: JSON.stringify(placeholder.declaredItems),
+        needsReview: true,
+        observedJson: JSON.stringify([]),
+        declaredJson: JSON.stringify(
+          room.notes ? [{ label: `Declared note: ${room.notes}`, source: "declared" }] : [],
+        ),
       },
       create: {
         extractionJobId: job.id,
         surveyRoomId: room.id,
-        needsReview: placeholder.needsReview,
-        observedJson: JSON.stringify(placeholder.observedItems),
-        declaredJson: JSON.stringify(placeholder.declaredItems),
+        needsReview: true,
+        observedJson: JSON.stringify([]),
+        declaredJson: JSON.stringify(
+          room.notes ? [{ label: `Declared note: ${room.notes}`, source: "declared" }] : [],
+        ),
       },
     });
 
     await prisma.extractionJob.update({
       where: { id: job.id },
       data: {
-        status: "COMPLETE",
+        status: "PENDING",
       },
     });
   }

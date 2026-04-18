@@ -4,6 +4,7 @@ type ProcessorResult = {
   observedItems: { label: string; confidence: number; source: "observed" }[];
   declaredItems: { label: string; source: "declared" }[];
   needsReview: boolean;
+  processorVersion?: string;
 };
 
 export interface ExtractionProcessor {
@@ -30,6 +31,7 @@ export class PlaceholderExtractionProcessor implements ExtractionProcessor {
         ? [{ label: `Declared note: ${input.roomNotes}`, source: "declared" }]
         : [],
       needsReview: true,
+      processorVersion: "heuristic-v1",
     };
   }
 }
