@@ -7,6 +7,8 @@ import { Header } from "@/components/layout/header";
 import { QuoteSummary } from "@/components/survey/quote-summary";
 import { ShareLinkCard } from "@/components/survey/share-link-card";
 import { ExportCard } from "@/components/survey/export-card";
+import { MoverUnlockForm } from "@/components/survey/mover-unlock-form";
+import { MoverUnlockList } from "@/components/survey/mover-unlock-list";
 
 export default async function SurveySummaryPage({
   params,
@@ -30,6 +32,11 @@ export default async function SurveySummaryPage({
       rooms: {
         orderBy: {
           createdAt: "asc",
+        },
+      },
+      moverUnlocks: {
+        orderBy: {
+          createdAt: "desc",
         },
       },
     },
@@ -60,6 +67,10 @@ export default async function SurveySummaryPage({
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <ShareLinkCard surveyId={survey.id} existingToken={survey.shareToken} />
           <ExportCard surveyId={survey.id} />
+        </div>
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <MoverUnlockForm surveyId={survey.id} />
+          <MoverUnlockList unlocks={survey.moverUnlocks} />
         </div>
       </section>
     </main>
