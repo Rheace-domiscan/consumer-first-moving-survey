@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/layout/header";
 import { SurveyDetail } from "@/components/survey/survey-detail";
+import { AuditEventList } from "@/components/survey/audit-event-list";
+import { StatusBanner } from "@/components/survey/status-banner";
 
 export default async function SurveyDetailPage({
   params,
@@ -28,6 +30,12 @@ export default async function SurveyDetailPage({
         orderBy: {
           createdAt: "asc",
         },
+      },
+      auditEvents: {
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 8,
       },
     },
   });
@@ -65,7 +73,13 @@ export default async function SurveyDetailPage({
             </Link>
           </div>
         </div>
+        <div className="mb-6">
+          <StatusBanner readinessState={survey.readinessState} status={survey.status} />
+        </div>
         <SurveyDetail survey={survey} />
+        <div className="mt-6">
+          <AuditEventList events={survey.auditEvents} />
+        </div>
       </section>
     </main>
   );
