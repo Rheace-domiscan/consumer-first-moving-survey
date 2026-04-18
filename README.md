@@ -45,5 +45,7 @@ npm run dev
 
 ## Notes
 - Clerk is now wired at the app level, but you still need to supply Clerk env keys.
-- Cloudflare R2 is wired behind a storage abstraction, but you still need to supply bucket credentials.
+- Cloudflare R2 is wired behind a storage abstraction.
+- The current bucket is `domiscan-moving-survey-media` and the endpoint is `https://717af61c7d9a9131e2ff5c7738addaa2.r2.cloudflarestorage.com`.
+- You still need to supply an R2 access key and secret for direct server-side uploads.
 - Initial scaffold is intentionally lean so the build can move quickly.
