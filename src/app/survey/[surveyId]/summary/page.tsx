@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { buildQuoteReadySummary } from "@/lib/survey-output";
 import { Header } from "@/components/layout/header";
 import { QuoteSummary } from "@/components/survey/quote-summary";
+import { ShareLinkCard } from "@/components/survey/share-link-card";
 
 export default async function SurveySummaryPage({
   params,
@@ -55,6 +56,9 @@ export default async function SurveySummaryPage({
           </Link>
         </div>
         <QuoteSummary summary={summary} />
+        <div className="mt-6">
+          <ShareLinkCard surveyId={survey.id} existingToken={survey.completeness} />
+        </div>
       </section>
     </main>
   );
