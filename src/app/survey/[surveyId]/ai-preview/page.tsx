@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/layout/header";
 import { ExtractionPersistedPreview } from "@/components/survey/extraction-persisted-preview";
 import { ExtractionSyncButton } from "@/components/survey/extraction-sync-button";
+import { ExtractionRunButton } from "@/components/survey/extraction-run-button";
 
 export default async function SurveyAiPreviewPage({
   params,
@@ -49,7 +50,10 @@ export default async function SurveyAiPreviewPage({
           <Link href={`/survey/${survey.id}`} className="text-sm text-slate-300 transition hover:text-white">
             ← Back to survey draft
           </Link>
-          <ExtractionSyncButton surveyId={survey.id} />
+          <div className="flex flex-wrap gap-3">
+            <ExtractionSyncButton surveyId={survey.id} />
+            <ExtractionRunButton surveyId={survey.id} />
+          </div>
         </div>
         <ExtractionPersistedPreview jobs={survey.extractionJobs} />
       </section>
