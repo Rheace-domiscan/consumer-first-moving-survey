@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint src src/middleware.ts next.config.ts eslint.config.mjs",
+    "lint": "eslint src src/proxy.ts next.config.ts eslint.config.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

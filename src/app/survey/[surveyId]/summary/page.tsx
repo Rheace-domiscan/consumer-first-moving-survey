@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/header";
 import { QuoteSummary } from "@/components/survey/quote-summary";
 import { ShareLinkCard } from "@/components/survey/share-link-card";
 import { ExportCard } from "@/components/survey/export-card";
+import { ExportDownloadCard } from "@/components/survey/export-download-card";
 import { MoverUnlockForm } from "@/components/survey/mover-unlock-form";
 import { MoverUnlockList } from "@/components/survey/mover-unlock-list";
 
@@ -64,13 +65,14 @@ export default async function SurveySummaryPage({
           </Link>
         </div>
         <QuoteSummary summary={summary} />
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
           <ShareLinkCard surveyId={survey.id} existingToken={survey.shareToken} />
           <ExportCard surveyId={survey.id} />
+          <ExportDownloadCard surveyId={survey.id} />
         </div>
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <MoverUnlockForm surveyId={survey.id} />
-          <MoverUnlockList unlocks={survey.moverUnlocks} />
+          <MoverUnlockList surveyId={survey.id} unlocks={survey.moverUnlocks} />
         </div>
       </section>
     </main>

@@ -1,6 +1,8 @@
 import { SectionCard } from "@/components/ui/section-card";
+import { MoverUnlockActions } from "@/components/survey/mover-unlock-actions";
 
 type UnlockListProps = {
+  surveyId: string;
   unlocks: {
     id: string;
     moverEmail: string;
@@ -12,7 +14,7 @@ type UnlockListProps = {
   }[];
 };
 
-export function MoverUnlockList({ unlocks }: UnlockListProps) {
+export function MoverUnlockList({ surveyId, unlocks }: UnlockListProps) {
   return (
     <SectionCard>
       <h3 className="text-lg font-semibold text-white">Mover unlock records</h3>
@@ -25,9 +27,12 @@ export function MoverUnlockList({ unlocks }: UnlockListProps) {
                   <p className="text-sm font-semibold text-white">{unlock.companyName || unlock.moverEmail}</p>
                   <p className="mt-1 text-xs text-slate-400">{unlock.moverEmail}</p>
                 </div>
-                <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
-                  {unlock.status}
-                </span>
+                <div className="flex items-start gap-3">
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
+                    {unlock.status}
+                  </span>
+                  <MoverUnlockActions surveyId={surveyId} unlockId={unlock.id} currentStatus={unlock.status} />
+                </div>
               </div>
             </div>
           ))
