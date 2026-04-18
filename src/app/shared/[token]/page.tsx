@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/layout/header";
 import { SharedPreview } from "@/components/survey/shared-preview";
+import { SharedPreviewActions } from "@/components/survey/shared-preview-actions";
 
 export default async function SharedSurveyPage({
   params,
@@ -20,6 +21,11 @@ export default async function SharedSurveyPage({
           createdAt: "asc",
         },
       },
+      moverUnlocks: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
@@ -32,6 +38,9 @@ export default async function SharedSurveyPage({
       <Header />
       <section className="mx-auto max-w-6xl px-6 py-16">
         <SharedPreview survey={survey} />
+        <div className="mt-6">
+          <SharedPreviewActions token={token} moverEmailHint={survey.moverUnlocks[0]?.moverEmail ?? null} />
+        </div>
       </section>
     </main>
   );
