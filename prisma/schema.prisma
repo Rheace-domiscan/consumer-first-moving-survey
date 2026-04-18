@@ -8,11 +8,11 @@ datasource db {
 }
 
 model Survey {
-  id                  String       @id @default(cuid())
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
+  id                  String                 @id @default(cuid())
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
   ownerClerkUserId    String
-  status              SurveyStatus @default(DRAFT)
+  status              SurveyStatus           @default(DRAFT)
   title               String?
   originPostcode      String?
   destinationPostcode String?
@@ -21,37 +21,66 @@ model Survey {
   completeness        String?
   notes               String?
   rooms               SurveyRoom[]
+  extractionJobs      ExtractionJob[]
 
   @@index([ownerClerkUserId, updatedAt])
 }
 
 model SurveyRoom {
-  id          String        @id @default(cuid())
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  surveyId    String
-  name        String
-  status      String?
-  mediaCount  Int           @default(0)
-  notes       String?
-  survey      Survey        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  media       SurveyMedia[]
+  id                String             @id @default(cuid())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  surveyId          String
+  name              String
+  status            String?
+  mediaCount        Int                @default(0)
+  notes             String?
+  survey            Survey             @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  media             SurveyMedia[]
+  extractionResults ExtractionResult[]
 }
 
 model SurveyMedia {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  surveyRoomId String
-  kind         String
-  fileName     String
-  contentType  String?
-  fileSize     Int?
-  storageKey   String
-  storageUrl   String?
-  uploadStatus String   @default("UPLOADED")
-  notes        String?
-  surveyRoom   SurveyRoom @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  surveyRoomId   String
+  kind           String
+  fileName       String
+  contentType    String?
+  fileSize       Int?
+  storageKey     String
+  storageUrl     String?
+  uploadStatus   String          @default("UPLOADED")
+  notes          String?
+  surveyRoom     SurveyRoom      @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
+  extractionJobs ExtractionJob[]
+}
+
+model ExtractionJob {
+  id          String             @id @default(cuid())
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  surveyId    String
+  mediaId     String
+  status      ExtractionJobStatus @default(PENDING)
+  mode        String
+  survey      Survey             @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  media       SurveyMedia        @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  result      ExtractionResult?
+}
+
+model ExtractionResult {
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  extractionJobId String       @unique
+  surveyRoomId  String
+  needsReview   Boolean        @default(true)
+  observedJson  String
+  declaredJson  String
+  extractionJob ExtractionJob  @relation(fields: [extractionJobId], references: [id], onDelete: Cascade)
+  surveyRoom    SurveyRoom     @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
 }
 
 enum SurveyStatus {
@@ -62,4 +91,11 @@ enum SurveyStatus {
   READY_TO_SHARE
   REVIEW_REQUIRED
   ARCHIVED
+}
+
+enum ExtractionJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
 }

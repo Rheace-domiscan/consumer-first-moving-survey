@@ -2,9 +2,9 @@ import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { buildExtractionQueue, buildPlaceholderExtractionResult } from "@/lib/extraction";
 import { Header } from "@/components/layout/header";
-import { ExtractionPreview } from "@/components/survey/extraction-preview";
+import { ExtractionPersistedPreview } from "@/components/survey/extraction-persisted-preview";
+import { ExtractionSyncButton } from "@/components/survey/extraction-sync-button";
 
 export default async function SurveyAiPreviewPage({
   params,
@@ -25,16 +25,13 @@ export default async function SurveyAiPreviewPage({
       ownerClerkUserId: userId,
     },
     include: {
-      rooms: {
+      extractionJobs: {
         include: {
-          media: {
-            orderBy: {
-              createdAt: "desc",
-            },
-          },
+          media: true,
+          result: true,
         },
         orderBy: {
-          createdAt: "asc",
+          createdAt: "desc",
         },
       },
     },
@@ -44,27 +41,6 @@ export default async function SurveyAiPreviewPage({
     notFound();
   }
 
-  const queue = buildExtractionQueue(
-    survey.rooms.flatMap((room) =>
-      room.media.map((media) => ({
-        surveyId: survey.id,
-        roomId: room.id,
-        mediaId: media.id,
-        kind: media.kind,
-        fileName: media.fileName,
-      })),
-    ),
-  );
-
-  const results = survey.rooms.map((room) =>
-    buildPlaceholderExtractionResult({
-      roomId: room.id,
-      roomName: room.name,
-      roomNotes: room.notes,
-      mediaCount: room.mediaCount,
-    }),
-  );
-
   return (
     <main className="min-h-screen">
       <Header />
@@ -73,8 +49,9 @@ export default async function SurveyAiPreviewPage({
           <Link href={`/survey/${survey.id}`} className="text-sm text-slate-300 transition hover:text-white">
             ← Back to survey draft
           </Link>
+          <ExtractionSyncButton surveyId={survey.id} />
         </div>
-        <ExtractionPreview queue={queue} results={results} />
+        <ExtractionPersistedPreview jobs={survey.extractionJobs} />
       </section>
     </main>
   );
