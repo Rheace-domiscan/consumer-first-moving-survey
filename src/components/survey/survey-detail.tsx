@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { formatDateTime } from "@/lib/format";
+import { getSurveyProgress } from "@/lib/survey-progress";
 import { StatusBadge } from "@/components/survey/status-badge";
 import { SectionCard } from "@/components/ui/section-card";
+import { RoomActions } from "@/components/survey/room-actions";
 
 export type SurveyDetailData = {
   id: string;
@@ -23,6 +26,8 @@ export type SurveyDetailData = {
 };
 
 export function SurveyDetail({ survey }: { survey: SurveyDetailData }) {
+  const progress = getSurveyProgress(survey.rooms);
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
       <SectionCard>
@@ -36,6 +41,20 @@ export function SurveyDetail({ survey }: { survey: SurveyDetailData }) {
           This draft is the working container for later uploads, major-item
           extraction, completeness checks, and mover unlock flows.
         </p>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <Meta label="Total rooms" value={String(progress.totalRooms)} />
+          <Meta label="Rooms with media" value={String(progress.roomsWithMedia)} />
+          <Meta label="Completed rooms" value={String(progress.completedRooms)} />
+          <Meta label="Progress" value={`${progress.percentComplete}%`} />
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-3 rounded-full bg-violet-500 transition-all"
+            style={{ width: `${progress.percentComplete}%` }}
+          />
+        </div>
 
         <dl className="mt-8 grid gap-4 md:grid-cols-2">
           <Meta label="Property type" value={survey.propertyType || "Pending"} />
@@ -55,11 +74,21 @@ export function SurveyDetail({ survey }: { survey: SurveyDetailData }) {
       </SectionCard>
 
       <SectionCard>
-        <h2 className="text-lg font-semibold text-white">Rooms and areas</h2>
-        <p className="mt-3 text-sm leading-7 text-slate-300">
-          Uploads will attach to these areas next. For now this view makes the draft
-          structure visible and gives us the right handoff into per-room capture.
-        </p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Rooms and areas</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-300">
+              Use room-level completion to track capture progress. Uploads and review now
+              roll up into a visible survey completion state.
+            </p>
+          </div>
+          <Link
+            href={`/survey/${survey.id}/upload`}
+            className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+          >
+            Manage uploads
+          </Link>
+        </div>
         <div className="mt-6 grid gap-3">
           {survey.rooms.map((room) => (
             <div
@@ -73,9 +102,12 @@ export function SurveyDetail({ survey }: { survey: SurveyDetailData }) {
                     {room.mediaCount} media items linked so far
                   </p>
                 </div>
-                <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
-                  {room.status || "Awaiting capture"}
-                </span>
+                <div className="flex items-start gap-3">
+                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-slate-300">
+                    {room.status || "Awaiting capture"}
+                  </span>
+                  <RoomActions surveyId={survey.id} roomId={room.id} currentStatus={room.status} />
+                </div>
               </div>
               <p className="mt-3 text-sm text-slate-300">{room.notes || "No room notes yet."}</p>
             </div>
