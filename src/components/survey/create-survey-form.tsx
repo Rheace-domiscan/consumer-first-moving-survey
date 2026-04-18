@@ -12,12 +12,7 @@ type SubmitState =
 
 export function CreateSurveyForm() {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [originPostcode, setOriginPostcode] = useState("");
-  const [destinationPostcode, setDestinationPostcode] = useState("");
   const [propertyType, setPropertyType] = useState(propertyTypes[0]);
-  const [moveWindow, setMoveWindow] = useState("");
-  const [notes, setNotes] = useState("");
   const [selectedRooms, setSelectedRooms] = useState<string[]>([
     "Living room",
     "Kitchen",
@@ -90,8 +85,7 @@ export function CreateSurveyForm() {
           <span>Survey title</span>
           <input
             name="title"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            defaultValue=""
             placeholder="3-bed move, London to Bristol"
             className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none ring-0 placeholder:text-slate-500"
           />
@@ -115,8 +109,7 @@ export function CreateSurveyForm() {
           <span>Origin postcode</span>
           <input
             name="originPostcode"
-            value={originPostcode}
-            onChange={(event) => setOriginPostcode(event.target.value)}
+            defaultValue=""
             placeholder="SW1A 1AA"
             className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none placeholder:text-slate-500"
           />
@@ -125,8 +118,7 @@ export function CreateSurveyForm() {
           <span>Destination postcode</span>
           <input
             name="destinationPostcode"
-            value={destinationPostcode}
-            onChange={(event) => setDestinationPostcode(event.target.value)}
+            defaultValue=""
             placeholder="BS1 4DJ"
             className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none placeholder:text-slate-500"
           />
@@ -135,8 +127,7 @@ export function CreateSurveyForm() {
           <span>Move window</span>
           <input
             name="moveWindow"
-            value={moveWindow}
-            onChange={(event) => setMoveWindow(event.target.value)}
+            defaultValue=""
             placeholder="Late May, flexible over 3 days"
             className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none placeholder:text-slate-500"
           />
@@ -201,8 +192,7 @@ export function CreateSurveyForm() {
         <span>Survey notes</span>
         <textarea
           name="notes"
-          value={notes}
-          onChange={(event) => setNotes(event.target.value)}
+          defaultValue=""
           rows={4}
           placeholder="Parking constraints, access problems, fragile items, storage overlap, anything useful for quoting."
           className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none placeholder:text-slate-500"
