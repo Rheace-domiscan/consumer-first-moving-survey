@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { uploadToObjectStorage } from "@/lib/storage";
+import { deriveSurveyStatus } from "@/lib/survey-status";
 
 export async function POST(
   request: Request,
@@ -66,13 +67,23 @@ export async function POST(
     },
   });
 
+  const rooms = await prisma.surveyRoom.findMany({
+    where: {
+      surveyId,
+    },
+    select: {
+      status: true,
+      mediaCount: true,
+    },
+  });
+
   await prisma.survey.updateMany({
     where: {
       id: surveyId,
       ownerClerkUserId: userId,
     },
     data: {
-      status: "COLLECTING_MEDIA",
+      status: deriveSurveyStatus(rooms),
     },
   });
 

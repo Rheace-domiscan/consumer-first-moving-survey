@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { prisma } from "@/lib/prisma";
+import { deriveSurveyStatus } from "@/lib/survey-status";
 
 export async function DELETE(
   _request: Request,
@@ -71,6 +72,23 @@ export async function DELETE(
     data: {
       mediaCount: remainingCount,
       status: remainingCount > 0 ? "MEDIA_ATTACHED" : "AWAITING_CAPTURE",
+    },
+  });
+
+  const rooms = await prisma.surveyRoom.findMany({
+    where: {
+      surveyId,
+    },
+    select: {
+      status: true,
+      mediaCount: true,
+    },
+  });
+
+  await prisma.survey.update({
+    where: { id: surveyId },
+    data: {
+      status: deriveSurveyStatus(rooms),
     },
   });
 

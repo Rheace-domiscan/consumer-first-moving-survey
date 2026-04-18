@@ -1,5 +1,6 @@
 import { MediaGallery } from "@/components/survey/media-gallery";
 import { RoomActions } from "@/components/survey/room-actions";
+import { RoomNotesForm } from "@/components/survey/room-notes-form";
 
 type UploadRoomCardProps = {
   surveyId: string;
@@ -34,6 +35,10 @@ export function UploadRoomCard({ surveyId, room }: UploadRoomCardProps) {
       </div>
       <div className="mt-4">
         <MediaGallery surveyId={surveyId} roomId={room.id} items={room.media} />
+      </div>
+      <div className="mt-4 border-t border-white/10 pt-4">
+        <p className="mb-3 text-xs uppercase tracking-[0.18em] text-slate-400">Room notes</p>
+        <RoomNotesForm surveyId={surveyId} roomId={room.id} initialNotes={room.notes} />
       </div>
     </div>
   );

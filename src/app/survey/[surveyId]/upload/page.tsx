@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/layout/header";
 import { SectionCard } from "@/components/ui/section-card";
 import { UploadPanel } from "@/components/survey/upload-panel";
+import { CaptureGuidance } from "@/components/survey/capture-guidance";
 
 export default async function SurveyUploadPage({
   params,
@@ -70,6 +71,10 @@ export default async function SurveyUploadPage({
             <UploadPanel surveyId={survey.id} rooms={survey.rooms} />
           </div>
         </SectionCard>
+
+        <div className="mt-6">
+          <CaptureGuidance />
+        </div>
       </section>
     </main>
   );
