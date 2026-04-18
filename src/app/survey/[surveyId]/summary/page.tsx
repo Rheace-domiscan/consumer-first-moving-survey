@@ -6,6 +6,7 @@ import { buildQuoteReadySummary } from "@/lib/survey-output";
 import { Header } from "@/components/layout/header";
 import { QuoteSummary } from "@/components/survey/quote-summary";
 import { ShareLinkCard } from "@/components/survey/share-link-card";
+import { ExportCard } from "@/components/survey/export-card";
 
 export default async function SurveySummaryPage({
   params,
@@ -56,8 +57,9 @@ export default async function SurveySummaryPage({
           </Link>
         </div>
         <QuoteSummary summary={summary} />
-        <div className="mt-6">
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <ShareLinkCard surveyId={survey.id} existingToken={survey.completeness} />
+          <ExportCard surveyId={survey.id} />
         </div>
       </section>
     </main>
