@@ -49,20 +49,23 @@ export function CreateSurveyForm() {
 
     setSubmitState({ status: "saving" });
 
+    const formData = new FormData(event.currentTarget);
+    const payload = {
+      title: String(formData.get("title") || ""),
+      originPostcode: String(formData.get("originPostcode") || ""),
+      destinationPostcode: String(formData.get("destinationPostcode") || ""),
+      propertyType: String(formData.get("propertyType") || propertyType),
+      moveWindow: String(formData.get("moveWindow") || ""),
+      notes: String(formData.get("notes") || ""),
+      rooms: selectedRooms,
+    };
+
     const response = await fetch("/api/surveys", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        title,
-        originPostcode,
-        destinationPostcode,
-        propertyType,
-        moveWindow,
-        notes,
-        rooms: selectedRooms,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -86,6 +89,7 @@ export function CreateSurveyForm() {
         <label className="space-y-2 text-sm text-slate-200">
           <span>Survey title</span>
           <input
+            name="title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder="3-bed move, London to Bristol"
@@ -95,6 +99,7 @@ export function CreateSurveyForm() {
         <label className="space-y-2 text-sm text-slate-200">
           <span>Property type</span>
           <select
+            name="propertyType"
             value={propertyType}
             onChange={(event) => setPropertyType(event.target.value)}
             className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none"
@@ -109,6 +114,7 @@ export function CreateSurveyForm() {
         <label className="space-y-2 text-sm text-slate-200">
           <span>Origin postcode</span>
           <input
+            name="originPostcode"
             value={originPostcode}
             onChange={(event) => setOriginPostcode(event.target.value)}
             placeholder="SW1A 1AA"
@@ -118,6 +124,7 @@ export function CreateSurveyForm() {
         <label className="space-y-2 text-sm text-slate-200">
           <span>Destination postcode</span>
           <input
+            name="destinationPostcode"
             value={destinationPostcode}
             onChange={(event) => setDestinationPostcode(event.target.value)}
             placeholder="BS1 4DJ"
@@ -127,6 +134,7 @@ export function CreateSurveyForm() {
         <label className="space-y-2 text-sm text-slate-200 md:col-span-2">
           <span>Move window</span>
           <input
+            name="moveWindow"
             value={moveWindow}
             onChange={(event) => setMoveWindow(event.target.value)}
             placeholder="Late May, flexible over 3 days"
@@ -192,6 +200,7 @@ export function CreateSurveyForm() {
       <label className="block space-y-2 text-sm text-slate-200">
         <span>Survey notes</span>
         <textarea
+          name="notes"
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           rows={4}
