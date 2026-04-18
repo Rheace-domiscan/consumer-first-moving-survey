@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { roomOptions, propertyTypes } from "@/lib/survey";
 
 type SubmitState =
@@ -10,6 +11,7 @@ type SubmitState =
   | { status: "error"; message: string };
 
 export function CreateSurveyForm() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [originPostcode, setOriginPostcode] = useState("");
   const [destinationPostcode, setDestinationPostcode] = useState("");
@@ -74,6 +76,8 @@ export function CreateSurveyForm() {
 
     const body = (await response.json()) as { id: string };
     setSubmitState({ status: "success", surveyId: body.id });
+    router.push(`/survey/${body.id}`);
+    router.refresh();
   }
 
   return (
