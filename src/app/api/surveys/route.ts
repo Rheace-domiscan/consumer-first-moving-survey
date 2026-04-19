@@ -32,7 +32,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as CreateSurveyPayload;
+  const rawBody = await request.text();
+  const parsedBody: unknown = rawBody ? JSON.parse(rawBody) : {};
+  const body =
+    parsedBody && typeof parsedBody === "object"
+      ? (parsedBody as CreateSurveyPayload)
+      : ({} as CreateSurveyPayload);
   const rooms = normalizeRooms(body.rooms ?? []);
 
   if (rooms.length === 0) {
