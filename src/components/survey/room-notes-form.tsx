@@ -16,17 +16,23 @@ export function RoomNotesForm({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function saveNotes() {
+  async function saveNotes(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const nextNotes = String(formData.get("notes") ?? "");
+
     setSaving(true);
     setMessage(null);
     setError(null);
+    setNotes(nextNotes);
 
     const response = await fetch(`/api/surveys/${surveyId}/rooms/${roomId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ notes }),
+      body: JSON.stringify({ notes: nextNotes }),
     });
 
     if (!response.ok) {
@@ -41,8 +47,9 @@ export function RoomNotesForm({
   }
 
   return (
-    <div className="space-y-3">
+    <form className="space-y-3" onSubmit={saveNotes}>
       <textarea
+        name="notes"
         value={notes}
         onChange={(event) => setNotes(event.target.value)}
         rows={3}
@@ -51,8 +58,7 @@ export function RoomNotesForm({
       />
       <div className="flex items-center justify-between gap-4">
         <button
-          type="button"
-          onClick={saveNotes}
+          type="submit"
           disabled={saving}
           className="rounded-full border border-white/15 px-4 py-2 text-xs font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
         >
@@ -61,6 +67,6 @@ export function RoomNotesForm({
         {message ? <p className="text-xs text-emerald-300">{message}</p> : null}
         {error ? <p className="text-xs text-rose-300">{error}</p> : null}
       </div>
-    </div>
+    </form>
   );
 }

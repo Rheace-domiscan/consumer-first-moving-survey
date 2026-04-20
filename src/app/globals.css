@@ -32,3 +32,24 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+.print-package,
+.print-package * {
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+.print-package [class*="bg-white"],
+.print-package [class*="bg-slate"],
+.print-package [class*="bg-amber"],
+.print-package [class*="bg-rose"] {
+  background: #fff !important;
+}
+
+.print-package [class*="text-slate-400"],
+.print-package [class*="text-slate-300"],
+.print-package [class*="text-slate-100"],
+.print-package [class*="text-amber-100"],
+.print-package [class*="text-rose-100"] {
+  color: #475569 !important;
+}

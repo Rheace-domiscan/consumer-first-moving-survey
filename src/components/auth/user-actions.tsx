@@ -1,25 +1,55 @@
 import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton } from "@clerk/nextjs";
+import { getCurrentUserAccess } from "@/lib/authz";
 
-export function UserActions() {
-  return (
-    <div className="flex items-center gap-3">
-      <SignedOut>
+export async function UserActions() {
+  const access = await getCurrentUserAccess();
+
+  if (!access.userId) {
+    return (
+      <div className="flex items-center gap-3">
         <SignInButton mode="modal">
           <button className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5">
             Sign in
           </button>
         </SignInButton>
-      </SignedOut>
-      <SignedIn>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      {access.isOps ? (
         <Link
-          href="/survey/list"
+          href="/ops/review"
           className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
         >
-          My surveys
+          Review queue
         </Link>
-        <UserButton afterSignOutUrl="/" />
-      </SignedIn>
+      ) : null}
+      {access.isAdmin ? (
+        <Link
+          href="/ops/settings"
+          className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+        >
+          Admin settings
+        </Link>
+      ) : null}
+      {access.isAdmin ? (
+        <Link
+          href="/ops/health"
+          className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+        >
+          Ops health
+        </Link>
+      ) : null}
+      <Link
+        href="/survey/list"
+        className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+      >
+        My surveys
+      </Link>
+      <UserButton afterSignOutUrl="/signed-out" />
     </div>
   );
 }

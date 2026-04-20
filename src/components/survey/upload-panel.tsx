@@ -9,7 +9,7 @@ type Room = {
   mediaCount: number;
   status: string | null;
   notes: string | null;
-  media?: {
+  media: {
     id: string;
     fileName: string;
     kind: string;

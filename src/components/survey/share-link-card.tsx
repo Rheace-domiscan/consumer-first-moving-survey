@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ShareLinkCard({
   surveyId,
@@ -11,7 +11,12 @@ export function ShareLinkCard({
 }) {
   const [pending, setPending] = useState(false);
   const [token, setToken] = useState(existingToken);
+  const [origin, setOrigin] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   async function createLink() {
     setPending(true);
@@ -33,7 +38,7 @@ export function ShareLinkCard({
     setPending(false);
   }
 
-  const url = token ? `${window.location.origin}/shared/${token}` : null;
+  const url = token && origin ? `${origin}/shared/${token}` : null;
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">

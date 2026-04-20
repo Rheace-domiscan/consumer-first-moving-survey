@@ -1,10 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { prisma } from "@/lib/prisma";
 import { deriveSurveyStatus } from "@/lib/survey-status";
 import { deriveReadinessState } from "@/lib/readiness";
 import { recordAuditEvent } from "@/lib/audit";
+import { deleteFromObjectStorage } from "@/lib/storage";
 
 export async function DELETE(
   _request: Request,
@@ -35,29 +35,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Media not found." }, { status: 404 });
   }
 
-  if (
-    process.env.STORAGE_BUCKET &&
-    process.env.STORAGE_REGION &&
-    process.env.STORAGE_ACCESS_KEY_ID &&
-    process.env.STORAGE_SECRET_ACCESS_KEY &&
-    process.env.STORAGE_ENDPOINT
-  ) {
-    const client = new S3Client({
-      region: process.env.STORAGE_REGION,
-      endpoint: process.env.STORAGE_ENDPOINT,
-      credentials: {
-        accessKeyId: process.env.STORAGE_ACCESS_KEY_ID,
-        secretAccessKey: process.env.STORAGE_SECRET_ACCESS_KEY,
-      },
-    });
-
-    await client.send(
-      new DeleteObjectCommand({
-        Bucket: process.env.STORAGE_BUCKET,
-        Key: media.storageKey,
-      }),
-    );
-  }
+  await deleteFromObjectStorage(media.storageKey);
 
   await prisma.surveyMedia.delete({
     where: { id: media.id },

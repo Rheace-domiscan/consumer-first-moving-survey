@@ -12,7 +12,7 @@ type SubmitState =
 
 export function CreateSurveyForm() {
   const router = useRouter();
-  const [propertyType, setPropertyType] = useState(propertyTypes[0]);
+  const [propertyType, setPropertyType] = useState<(typeof propertyTypes)[number]>(propertyTypes[0]);
   const [selectedRooms, setSelectedRooms] = useState<string[]>([
     "Living room",
     "Kitchen",
@@ -95,7 +95,9 @@ export function CreateSurveyForm() {
           <select
             name="propertyType"
             value={propertyType}
-            onChange={(event) => setPropertyType(event.target.value)}
+            onChange={(event) =>
+              setPropertyType(event.target.value as (typeof propertyTypes)[number])
+            }
             className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none"
           >
             {propertyTypes.map((option) => (

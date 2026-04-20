@@ -30,7 +30,7 @@ export function MoverUnlockForm({ surveyId }: { surveyId: string }) {
       return;
     }
 
-    setMessage("Mover invite created.");
+    setMessage("Mover invite created with commercial unlock pricing.");
     setMoverEmail("");
     setCompanyName("");
     setPending(false);
@@ -41,8 +41,8 @@ export function MoverUnlockForm({ surveyId }: { surveyId: string }) {
     <form className="rounded-2xl border border-white/10 bg-white/5 p-5" onSubmit={submit}>
       <h3 className="text-lg font-semibold text-white">Invite mover</h3>
       <p className="mt-3 text-sm leading-7 text-slate-300">
-        Create the first commercial unlock record. This is still a foundation layer,
-        not the full payment flow.
+        Create the commercial unlock record the mover will use to pay for and access the
+        structured survey package.
       </p>
       <div className="mt-4 grid gap-4">
         <input

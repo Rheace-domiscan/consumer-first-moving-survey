@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { buildQuoteReadySummary } from "@/lib/survey-output";
+import { buildSurveyPackage } from "@/lib/survey-package";
+import { getOwnerSurveySummary } from "@/lib/surveys/repository";
 import { Header } from "@/components/layout/header";
 import { QuoteSummary } from "@/components/survey/quote-summary";
 import { ShareLinkCard } from "@/components/survey/share-link-card";
@@ -24,30 +24,16 @@ export default async function SurveySummaryPage({
 
   const { surveyId } = await params;
 
-  const survey = await prisma.survey.findFirst({
-    where: {
-      id: surveyId,
-      ownerClerkUserId: userId,
-    },
-    include: {
-      rooms: {
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
-      moverUnlocks: {
-        orderBy: {
-          createdAt: "desc",
-        },
-      },
-    },
+  const survey = await getOwnerSurveySummary({
+    surveyId,
+    userId,
   });
 
   if (!survey) {
     notFound();
   }
 
-  const summary = buildQuoteReadySummary(survey);
+  const surveyPackage = buildSurveyPackage(survey);
 
   return (
     <main className="min-h-screen">
@@ -57,14 +43,16 @@ export default async function SurveySummaryPage({
           <Link href={`/survey/${survey.id}`} className="text-sm text-slate-300 transition hover:text-white">
             ← Back to survey draft
           </Link>
-          <Link
-            href={`/mover?survey=${survey.id}`}
-            className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
-          >
-            View mover preview shape
-          </Link>
+          {survey.shareToken ? (
+            <Link
+              href={`/shared/${survey.shareToken}`}
+              className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+            >
+              Open public mover preview
+            </Link>
+          ) : null}
         </div>
-        <QuoteSummary summary={summary} />
+        <QuoteSummary surveyPackage={surveyPackage} />
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
           <ShareLinkCard surveyId={survey.id} existingToken={survey.shareToken} />
           <ExportCard surveyId={survey.id} />

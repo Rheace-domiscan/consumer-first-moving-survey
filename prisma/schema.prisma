@@ -8,26 +8,41 @@ datasource db {
 }
 
 model Survey {
-  id                  String                 @id @default(cuid())
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
-  ownerClerkUserId    String
-  status              SurveyStatus           @default(DRAFT)
-  shareToken          String?                @unique
-  readinessState      String?                @default("NOT_READY")
-  title               String?
-  originPostcode      String?
-  destinationPostcode String?
-  propertyType        String?
-  moveWindow          String?
-  completeness        String?
-  notes               String?
-  rooms               SurveyRoom[]
-  extractionJobs      ExtractionJob[]
-  auditEvents         AuditEvent[]
-  moverUnlocks        MoverUnlock[]
+  id                          String                @id @default(cuid())
+  createdAt                   DateTime              @default(now())
+  updatedAt                   DateTime              @updatedAt
+  ownerClerkUserId            String
+  status                      SurveyStatus          @default(DRAFT)
+  retentionState              RetentionState        @default(ACTIVE)
+  retentionPolicyId           String?
+  retentionArchiveAfterDays   Int?
+  retentionPurgeAfterDays     Int?
+  retentionExemptReason       String?
+  archivedAt                  DateTime?
+  archivedByClerkUserId       String?
+  statusBeforeArchive         SurveyStatus?
+  readinessStateBeforeArchive String?
+  shareToken                  String?               @unique
+  readinessState              String?               @default("NOT_READY")
+  title                       String?
+  originPostcode              String?
+  destinationPostcode         String?
+  propertyType                String?
+  moveWindow                  String?
+  completeness                String?
+  notes                       String?
+  retentionPolicy             RetentionPolicy?      @relation(fields: [retentionPolicyId], references: [id], onDelete: SetNull)
+  rooms                       SurveyRoom[]
+  extractionJobs              ExtractionJob[]
+  auditEvents                 AuditEvent[]
+  moverUnlocks                MoverUnlock[]
+  unlockCharges               UnlockCharge[]
+  accessEntitlements          AccessEntitlement[]
+  companyCreditLedgerEntries  CompanyCreditLedger[]
 
   @@index([ownerClerkUserId, updatedAt])
+  @@index([retentionState, updatedAt])
+  @@index([retentionState, archivedAt])
 }
 
 model SurveyRoom {
@@ -59,57 +74,332 @@ model SurveyMedia {
   notes          String?
   surveyRoom     SurveyRoom      @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
   extractionJobs ExtractionJob[]
+
+  @@index([surveyRoomId, createdAt])
+  @@index([uploadStatus, createdAt])
 }
 
 model ExtractionJob {
-  id          String              @id @default(cuid())
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  surveyId    String
-  mediaId     String
-  status      ExtractionJobStatus @default(PENDING)
-  mode        String
-  survey      Survey              @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  media       SurveyMedia         @relation(fields: [mediaId], references: [id], onDelete: Cascade)
-  result      ExtractionResult?
+  id               String              @id @default(cuid())
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  surveyId         String
+  mediaId          String
+  status           ExtractionJobStatus @default(PENDING)
+  mode             String
+  priority         Int                 @default(100)
+  attempts         Int                 @default(0)
+  availableAt      DateTime            @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  failedAt         DateTime?
+  lastError        String?
+  processorVersion String?
+  inputFingerprint String?
+  leaseToken       String?
+  leaseExpiresAt   DateTime?
+  survey           Survey              @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  media            SurveyMedia         @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  result           ExtractionResult?
+
+  @@index([status, availableAt, priority])
+  @@index([surveyId, status, createdAt])
 }
 
 model ExtractionResult {
-  id              String        @id @default(cuid())
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  extractionJobId String        @unique
-  surveyRoomId    String
-  needsReview     Boolean       @default(true)
-  observedJson    String
-  declaredJson    String
-  extractionJob   ExtractionJob @relation(fields: [extractionJobId], references: [id], onDelete: Cascade)
-  surveyRoom      SurveyRoom    @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
+  id                String        @id @default(cuid())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  extractionJobId   String        @unique
+  surveyRoomId      String
+  needsReview       Boolean       @default(true)
+  confidenceScore   Int           @default(0)
+  qualityTier       String?
+  majorItemCount    Int           @default(0)
+  observedJson      String
+  declaredJson      String
+  summaryJson       String?
+  reviewReasonsJson String?
+  extractionJob     ExtractionJob @relation(fields: [extractionJobId], references: [id], onDelete: Cascade)
+  surveyRoom        SurveyRoom    @relation(fields: [surveyRoomId], references: [id], onDelete: Cascade)
+
+  @@index([surveyRoomId, updatedAt])
 }
 
 model AuditEvent {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
   surveyId    String
-  actorType  String
-  actorId    String?
-  eventType  String
+  actorType   String
+  actorId     String?
+  eventType   String
   payloadJson String?
-  survey     Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@index([surveyId, createdAt])
+  @@index([createdAt])
 }
 
 model MoverUnlock {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  surveyId    String
-  moverEmail  String
-  companyName String?
-  status      String   @default("INVITED")
-  invitedAt   DateTime @default(now())
-  viewedAt    DateTime?
-  unlockedAt  DateTime?
-  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  id                   String                @id @default(cuid())
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  surveyId             String
+  companyId            String?
+  moverEmail           String
+  companyName          String?
+  status               String                @default("INVITED")
+  quotedPriceCents     Int                   @default(2900)
+  currency             String                @default("usd")
+  stripeCustomerId     String?
+  claimedByClerkUserId String?
+  unlockSource         String?
+  checkoutStartedAt    DateTime?
+  paymentCapturedAt    DateTime?
+  invitedAt            DateTime              @default(now())
+  viewedAt             DateTime?
+  unlockedAt           DateTime?
+  survey               Survey                @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  company              Company?              @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  unlockCharges        UnlockCharge[]
+  accessEntitlement    AccessEntitlement?
+  creditLedgerEntries  CompanyCreditLedger[]
+
+  @@index([surveyId, status])
+  @@index([moverEmail, status])
+  @@index([companyId, status])
+}
+
+model UnlockCharge {
+  id                      String               @id @default(cuid())
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  surveyId                String
+  moverUnlockId           String
+  companyId               String?
+  billingSubscriptionId   String?
+  provider                String               @default("MOCK")
+  chargeType              String               @default("UNLOCK")
+  status                  String               @default("PENDING")
+  amountCents             Int
+  currency                String               @default("usd")
+  checkoutRequestedAt     DateTime             @default(now())
+  paidAt                  DateTime?
+  stripeCheckoutSessionId String?              @unique
+  stripePaymentIntentId   String?              @unique
+  stripeCustomerId        String?
+  stripeInvoiceId         String?
+  checkoutUrl             String?
+  metadataJson            String?
+  survey                  Survey               @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  moverUnlock             MoverUnlock          @relation(fields: [moverUnlockId], references: [id], onDelete: Cascade)
+  company                 Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  billingSubscription     BillingSubscription? @relation(fields: [billingSubscriptionId], references: [id], onDelete: SetNull)
+  accessEntitlement       AccessEntitlement?
+
+  @@index([surveyId, createdAt])
+  @@index([moverUnlockId, createdAt])
+  @@index([status, createdAt])
+  @@index([companyId, createdAt])
+}
+
+model AccessEntitlement {
+  id             String        @id @default(cuid())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  surveyId       String
+  moverUnlockId  String        @unique
+  unlockChargeId String?       @unique
+  companyId      String?
+  source         String        @default("PAYMENT")
+  scope          String        @default("MOVER_UNLOCK")
+  status         String        @default("ACTIVE")
+  grantedAt      DateTime      @default(now())
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+  revokedReason  String?
+  survey         Survey        @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  moverUnlock    MoverUnlock   @relation(fields: [moverUnlockId], references: [id], onDelete: Cascade)
+  unlockCharge   UnlockCharge? @relation(fields: [unlockChargeId], references: [id], onDelete: SetNull)
+  company        Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  @@index([surveyId, status])
+  @@index([companyId, status])
+}
+
+model Company {
+  id                           String                @id @default(cuid())
+  createdAt                    DateTime              @default(now())
+  updatedAt                    DateTime              @updatedAt
+  name                         String
+  slug                         String                @unique
+  billingEmail                 String
+  domain                       String?
+  status                       String                @default("ACTIVE")
+  planKey                      String?
+  subscriptionStatus           String?
+  stripeCustomerId             String?               @unique
+  stripeDefaultPaymentMethodId String?
+  currentPeriodStartsAt        DateTime?
+  currentPeriodEndsAt          DateTime?
+  includedUnlockCredits        Int                   @default(0)
+  bonusUnlockCredits           Int                   @default(0)
+  memberships                  CompanyMembership[]
+  subscriptions                BillingSubscription[]
+  creditLedgerEntries          CompanyCreditLedger[]
+  moverUnlocks                 MoverUnlock[]
+  unlockCharges                UnlockCharge[]
+  accessEntitlements           AccessEntitlement[]
+
+  @@index([billingEmail])
+  @@index([domain])
+}
+
+model CompanyMembership {
+  id                   String   @id @default(cuid())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  companyId            String
+  clerkUserId          String
+  email                String
+  role                 String   @default("MEMBER")
+  status               String   @default("ACTIVE")
+  joinedAt             DateTime @default(now())
+  invitedByClerkUserId String?
+  company              Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, clerkUserId])
+  @@index([clerkUserId, status])
+  @@index([companyId, status])
+}
+
+model BillingSubscription {
+  id                      String                @id @default(cuid())
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  companyId               String
+  provider                String                @default("STRIPE")
+  planKey                 String
+  status                  String
+  stripeSubscriptionId    String?               @unique
+  stripeCustomerId        String?
+  stripePriceId           String?
+  stripeProductId         String?
+  stripeCheckoutSessionId String?
+  currentPeriodStart      DateTime?
+  currentPeriodEnd        DateTime?
+  includedUnlockCredits   Int                   @default(0)
+  cancelAtPeriodEnd       Boolean               @default(false)
+  canceledAt              DateTime?
+  lastInvoiceId           String?
+  lastInvoiceStatus       String?
+  lastInvoicePaidAt       DateTime?
+  metadataJson            String?
+  company                 Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  unlockCharges           UnlockCharge[]
+  creditLedgerEntries     CompanyCreditLedger[]
+
+  @@index([companyId, status])
+}
+
+model CompanyCreditLedger {
+  id                    String               @id @default(cuid())
+  createdAt             DateTime             @default(now())
+  companyId             String
+  billingSubscriptionId String?
+  surveyId              String?
+  moverUnlockId         String?
+  delta                 Int
+  balanceAfter          Int
+  reason                String
+  note                  String?
+  stripeInvoiceId       String?
+  company               Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  billingSubscription   BillingSubscription? @relation(fields: [billingSubscriptionId], references: [id], onDelete: SetNull)
+  survey                Survey?              @relation(fields: [surveyId], references: [id], onDelete: SetNull)
+  moverUnlock           MoverUnlock?         @relation(fields: [moverUnlockId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+  @@index([reason, createdAt])
+}
+
+model AppRoleAssignment {
+  id                   String   @id @default(cuid())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  clerkUserId          String   @unique
+  role                 AppRole
+  grantedByClerkUserId String?
+  note                 String?
+
+  @@index([role])
+}
+
+model RetentionPolicy {
+  id                      String         @id @default(cuid())
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  key                     String         @unique @default("GLOBAL_DEFAULT")
+  activeSurveyArchiveDays Int            @default(30)
+  archivedSurveyPurgeDays Int            @default(180)
+  mediaRetentionDays      Int            @default(180)
+  auditRetentionDays      Int            @default(365)
+  purgeEnabled            Boolean        @default(false)
+  allowOwnerDelete        Boolean        @default(false)
+  updatedByClerkUserId    String?
+  surveys                 Survey[]
+  runs                    RetentionRun[]
+}
+
+model RetentionRun {
+  id                     String          @id @default(cuid())
+  createdAt              DateTime        @default(now())
+  policyId               String
+  triggeredByClerkUserId String?
+  archivedCount          Int             @default(0)
+  mediaPurgedCount       Int             @default(0)
+  auditPurgedCount       Int             @default(0)
+  purgedCount            Int             @default(0)
+  archivedSurveyIdsJson  String?
+  purgedSurveyIdsJson    String?
+  notes                  String?
+  policy                 RetentionPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+model ProviderWebhookEvent {
+  id              String    @id @default(cuid())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  provider        String
+  providerEventId String    @unique
+  eventType       String
+  status          String    @default("RECEIVED")
+  attempts        Int       @default(0)
+  processedAt     DateTime?
+  lastError       String?
+  payloadJson     String?
+
+  @@index([provider, status, createdAt])
+}
+
+model BackgroundJobRun {
+  id             String    @id @default(cuid())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  jobType        String
+  scope          String?
+  status         String    @default("STARTED")
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  processedCount Int       @default(0)
+  failedCount    Int       @default(0)
+  notes          String?
+  metadataJson   String?
+
+  @@index([jobType, createdAt])
+  @@index([status, createdAt])
 }
 
 enum SurveyStatus {
@@ -127,4 +417,16 @@ enum ExtractionJobStatus {
   PROCESSING
   COMPLETE
   FAILED
+}
+
+enum AppRole {
+  OWNER
+  OPERATOR
+  ADMIN
+}
+
+enum RetentionState {
+  ACTIVE
+  ARCHIVED
+  EXEMPT
 }

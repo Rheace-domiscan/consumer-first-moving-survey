@@ -12,6 +12,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .vercel
+.data
 *.tsbuildinfo
 dev.db
 dev.db-journal

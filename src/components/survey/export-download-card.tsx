@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export function ExportDownloadCard({ surveyId }: { surveyId: string }) {
   const [error, setError] = useState<string | null>(null);
 
-  async function download() {
+  async function downloadJson() {
     setError(null);
 
     const response = await fetch(`/api/surveys/${surveyId}/export`);
@@ -26,19 +27,55 @@ export function ExportDownloadCard({ surveyId }: { surveyId: string }) {
     URL.revokeObjectURL(url);
   }
 
+  async function downloadCsv() {
+    setError(null);
+
+    const response = await fetch(`/api/surveys/${surveyId}/export/csv`);
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      setError(body?.error ?? "Failed to download CSV export.");
+      return;
+    }
+
+    const csv = await response.text();
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `survey-${surveyId}-items.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
       <h3 className="text-lg font-semibold text-white">Download export</h3>
       <p className="mt-3 text-sm leading-7 text-slate-300">
-        Download the survey export as a JSON file for handoff, debugging, or downstream processing.
+        Download the survey package as JSON or CSV for mover handoff, debugging, or downstream processing.
       </p>
-      <button
-        type="button"
-        onClick={download}
-        className="mt-4 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
-      >
-        Download JSON
-      </button>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={downloadJson}
+          className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+        >
+          Download JSON
+        </button>
+        <button
+          type="button"
+          onClick={downloadCsv}
+          className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+        >
+          Download CSV
+        </button>
+        <Link
+          href={`/survey/${surveyId}/print`}
+          className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+        >
+          Open print package
+        </Link>
+      </div>
       {error ? <p className="mt-3 text-sm text-rose-300">{error}</p> : null}
     </div>
   );

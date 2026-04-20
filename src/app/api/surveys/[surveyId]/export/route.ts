@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { buildExportDocument } from "@/lib/export";
+import { getOwnerSurveyPackage } from "@/lib/surveys/repository";
 
 export async function GET(
   _request: Request,
@@ -15,18 +15,9 @@ export async function GET(
 
   const { surveyId } = await params;
 
-  const survey = await prisma.survey.findFirst({
-    where: {
-      id: surveyId,
-      ownerClerkUserId: userId,
-    },
-    include: {
-      rooms: {
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
-    },
+  const survey = await getOwnerSurveyPackage({
+    surveyId,
+    userId,
   });
 
   if (!survey) {

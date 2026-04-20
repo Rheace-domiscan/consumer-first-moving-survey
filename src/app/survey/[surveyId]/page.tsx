@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getOrCreateGlobalRetentionPolicy } from "@/lib/retention";
+import { getOwnerSurveyDetail } from "@/lib/surveys/repository";
 import { Header } from "@/components/layout/header";
 import { SurveyDetail } from "@/components/survey/survey-detail";
 import { AuditEventList } from "@/components/survey/audit-event-list";
 import { StatusBanner } from "@/components/survey/status-banner";
+import { DeleteSurveyButton } from "@/components/survey/delete-survey-button";
 
 export default async function SurveyDetailPage({
   params,
@@ -19,26 +21,13 @@ export default async function SurveyDetailPage({
   }
 
   const { surveyId } = await params;
-
-  const survey = await prisma.survey.findFirst({
-    where: {
-      id: surveyId,
-      ownerClerkUserId: userId,
-    },
-    include: {
-      rooms: {
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
-      auditEvents: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 8,
-      },
-    },
-  });
+  const [survey, policy] = await Promise.all([
+    getOwnerSurveyDetail({
+      surveyId,
+      userId,
+    }),
+    getOrCreateGlobalRetentionPolicy(),
+  ]);
 
   if (!survey) {
     notFound();
@@ -53,6 +42,7 @@ export default async function SurveyDetailPage({
             ← Back to drafts
           </Link>
           <div className="flex flex-wrap gap-3">
+            {policy.allowOwnerDelete ? <DeleteSurveyButton surveyId={survey.id} /> : null}
             <Link
               href={`/survey/${survey.id}/summary`}
               className="rounded-full border border-white/15 px-5 py-3 text-sm font-medium text-slate-100 transition hover:border-white/30 hover:bg-white/5"
